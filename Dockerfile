@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 5553
 
 # Copy the .env file into the container
-COPY .env .env
+#COPY .env .env
 
 # Run app.py when the container launches
 CMD ["gunicorn", "-b", "0.0.0.0:5553", "app:app"]
