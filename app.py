@@ -7,6 +7,8 @@ import urllib
 
 JELLYFIN_API_URL = os.getenv("JELLYFIN_API_URL")
 JELLYFIN_API_TOKEN = os.getenv("JELLYFIN_API_TOKEN")
+EPISODE_START_INTERVAL = os.getenv("EPISODE_START_INTERVAL")
+EPISODE_COUNT = os.getenv("EPISODE_COUNT")
 
 app = Flask(__name__)
 
@@ -51,7 +53,7 @@ def webhook():
             time_since_last_play = time.time() - tracker["last_play_time"]
 
             # Reset the count if playback events are far apart (e.g., > 1 hour)
-            if time_since_last_play > 3600:  # 1 hour
+            if time_since_last_play > (60 * EPISODE_START_INTERVAL):
                 tracker["count"] = 0
 
             # Increment the playback count
@@ -61,7 +63,7 @@ def webhook():
             print(f"User {user_id} on Device {device_id} has played {tracker['count']} episodes in a row.")
 
             # If more than 4 episodes have been played, stop playback
-            if tracker["count"] > 3:
+            if tracker["count"] > (EPISODE_COUNT - 1):
                 if stop_playback(session_id):
                     tracker["count"] = 0
                     return jsonify({"message": "Playback stopped due to autoplay limit"}), 200
