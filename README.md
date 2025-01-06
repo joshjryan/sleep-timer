@@ -10,7 +10,7 @@ Becasue most Jellyfin clients do not have a "Still Watching?" feature, I created
 1. Start the docker container
 2. Install the [Jellyfin Webhook Plugin](https://github.com/jellyfin/jellyfin-plugin-webhook)
 3. Add a generic destination, with a Webhook URL of `http://{docker-address}:5553/webhook`
-4. Choose the "Playback Start" Notification Type and choose the users who will use this sleep timer
+4. Choose the "Playback Start" Notification Type, choose the users who will use this sleep timer, and click the "Send All Properties (ignores template)" checkbox
 
 
 ## Docker Compose Example
