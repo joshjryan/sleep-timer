@@ -32,6 +32,7 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/jf-sleep-timer:latest
             ${{ secrets.DOCKER_USERNAME }}/jf-sleep-timer:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/jf-sleep-timer:$(date +'%Y-%m-%d')
 
       - name: Log out of Docker Hub
         run: docker logout
