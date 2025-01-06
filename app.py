@@ -7,8 +7,8 @@ import urllib
 
 JELLYFIN_API_URL = os.getenv("JELLYFIN_API_URL")
 JELLYFIN_API_TOKEN = os.getenv("JELLYFIN_API_TOKEN")
-EPISODE_START_INTERVAL = os.getenv("EPISODE_START_INTERVAL")
-EPISODE_COUNT = os.getenv("EPISODE_COUNT")
+EPISODE_START_INTERVAL = float(os.getenv("EPISODE_START_INTERVAL"))
+EPISODE_COUNT = float(os.getenv("EPISODE_COUNT"))
 
 app = Flask(__name__)
 
