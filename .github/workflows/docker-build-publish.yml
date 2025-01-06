@@ -24,6 +24,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Get Current Date
+        id: get_date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -32,6 +36,7 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/jf-sleep-timer:latest
             ${{ secrets.DOCKER_USERNAME }}/jf-sleep-timer:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/jf-sleep-timer:${{ steps.get_date.outputs.date }}
 
       - name: Log out of Docker Hub
         run: docker logout
