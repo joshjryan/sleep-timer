@@ -101,7 +101,7 @@ def stop_playback(session):
         
         # Send the request to stop playback
         req = urllib.request.urlopen(urllib.request.Request(stop_url, method="POST"))
-        print(f"👤 {session.get('NotificationUsername', 'Unknown')} has played {EPISODE_COUNT} episodes in a row.\n❗️ ⏹️ Stopping Playback ❗️\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
+        print(f"👤 {session.get('NotificationUsername', 'Unknown')} has played {int(EPISODE_COUNT)} episodes in a row.\n❗️ ⏹️ Stopping Playback ❗️\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
         print()
 
         # Wait for 2 seconds before sending the next command
