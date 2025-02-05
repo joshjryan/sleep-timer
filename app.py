@@ -26,7 +26,6 @@ def webhook():
             event = request.json
         else:
             # Fall back to raw data and try to parse it
-            print("Non-JSON Content-Type, attempting to parse raw data.")
             event = json.loads(request.data.decode('utf-8'))
 
         # Debugging: Log the parsed payload
@@ -37,11 +36,20 @@ def webhook():
         user_id = event.get("UserId")
         device_id = event.get("DeviceId")
         item_type = event.get("ItemType")
-        session_id = event.get("Id")  # Session ID to stop playback
+        
+        # Store session object with nullable fields
+        session = {
+            "NotificationUsername": event.get("NotificationUsername", None),
+            "Id": event.get("Id", None), #T The ID of the session to stop
+            "DeviceName": event.get("DeviceName", None),
+            "RemoteEndPoint": event.get("RemoteEndPoint", None)
+        }
 
         # Check if this is a "PlaybackStart" event for an episode
         if notification_type == "PlaybackStart" and item_type == "Episode":
             key = f"{user_id}-{device_id}"
+
+            print(f"ℹ️ PlaybackStart event received from user: {session.get('NotificationUsername', 'Unknown')}\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
 
             if key not in playback_tracker:
                 playback_tracker[key] = {
@@ -60,11 +68,11 @@ def webhook():
             tracker["count"] += 1
             tracker["last_play_time"] = time.time()
 
-            print(f"User {user_id} on Device {device_id} has played {tracker['count']} episodes in a row.")
+            print(f"ℹ️ {session.get('NotificationUsername', 'Unknown')} has played {tracker['count']} episodes in a row.")
 
             # If more than 4 episodes have been played, stop playback
             if tracker["count"] > (EPISODE_COUNT - 1):
-                if stop_playback(session_id):
+                if stop_playback(session):
                     tracker["count"] = 0
                     return jsonify({"message": "Playback stopped due to autoplay limit"}), 200
                 else:
@@ -77,11 +85,12 @@ def webhook():
     return jsonify({"message": "Event processed"}), 200
 
 
-def stop_playback(session_id):
+def stop_playback(session):
     """
     Stop playback for a given session ID using the Jellyfin API.
     """
 
+    session_id = session['Id']
     display_message(session_id, 'Stopping Playback', 'Sleep Timer', 7000)
 
     time.sleep(5)
@@ -92,7 +101,8 @@ def stop_playback(session_id):
         
         # Send the request to stop playback
         req = urllib.request.urlopen(urllib.request.Request(stop_url, method="POST"))
-        print(f"Playback stopped for session {session_id}")
+        print(f"👤 {session.get('NotificationUsername', 'Unknown')} has played {EPISODE_COUNT} episodes in a row.\n❗️ ⏹️ Stopping Playback ❗️\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
+        print()
 
         # Wait for 2 seconds before sending the next command
         time.sleep(2)
@@ -102,7 +112,6 @@ def stop_playback(session_id):
         
         # Send the request to navigate back to the home screen
         req = urllib.request.urlopen(urllib.request.Request(go_home_url, method="POST"))
-        print(f"GoHome command sent for session {session_id}")
 
         return True
     except Exception as e:
@@ -139,7 +148,6 @@ def display_message(session_id, message, header="Notice", timeout_ms=5000):
         # Send the display message
         req = urllib.request.Request(display_message_url, data=json.dumps(payload).encode('utf-8'), headers=headers, method="POST")
         urllib.request.urlopen(req)
-        print(f"Message sent to session {session_id}: {message}")
 
     except Exception as e:
         print(f"Error sending display message to session {session_id}: {e}")
