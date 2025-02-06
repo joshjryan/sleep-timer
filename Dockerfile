@@ -4,6 +4,12 @@ FROM python:3.9-slim
 # Set the working directory in the container
 WORKDIR /app
 
+# Install tzdata package for timezone support
+RUN apt-get update && apt-get install -y tzdata
+
+# Set the timezone based on the TZ environment variable
+ENV TZ=${TZ:-UTC}
+
 # Copy the current directory contents into the container at /app
 COPY . /app
 
