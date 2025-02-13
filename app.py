@@ -9,6 +9,10 @@ JELLYFIN_API_URL = os.getenv("JELLYFIN_API_URL")
 JELLYFIN_API_TOKEN = os.getenv("JELLYFIN_API_TOKEN")
 EPISODE_START_INTERVAL = float(os.getenv("EPISODE_START_INTERVAL"))
 EPISODE_COUNT = float(os.getenv("EPISODE_COUNT"))
+JELLYFIN_MESSAGE = os.getenv("JELLYFIN_MESSAGE")
+
+if JELLYFIN_MESSAGE is None:
+        JELLYFIN_MESSAGE = "Stopping Playback"
 
 app = Flask(__name__)
 
@@ -91,7 +95,7 @@ def stop_playback(session):
     """
 
     session_id = session['Id']
-    display_message(session_id, 'Stopping Playback', 'Sleep Timer', 7000)
+    display_message(session_id, JELLYFIN_MESSAGE, 'Sleep Timer', 7000)
 
     time.sleep(5)
 
