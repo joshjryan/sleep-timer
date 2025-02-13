@@ -35,5 +35,7 @@ services:
       EPISODE_START_INTERVAL: 60
       # Optional. Stop playback when this episode starts.
       EPISODE_COUNT: 4
+      # Optional. Message to be displayed before playback stop.
+      JELLYFIN_MESSAGE: "Are you still watching ?"
     restart: unless-stopped
 ```
