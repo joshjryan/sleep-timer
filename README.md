@@ -37,5 +37,7 @@ services:
       EPISODE_COUNT: 4
       # Optional. Message to be displayed before playback stop.
       JELLYFIN_MESSAGE: "Are you still watching ?"
+      # Optional. STOP / PAUSE playback
+      JELLYFIN_STOPPLAYBACK: "PAUSE" # Options STOP & PAUSE 
     restart: unless-stopped
 ```
