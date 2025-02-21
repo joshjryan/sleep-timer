@@ -38,6 +38,6 @@ services:
       # Optional. Message to be displayed before playback stop.
       JELLYFIN_MESSAGE: "Are you still watching ?"
       # Optional. STOP / PAUSE playback
-      JELLYFIN_STOPPLAYBACK: "PAUSE" # Options STOP & PAUSE 
+      JELLYFIN_STOPPLAYBACK: "PAUSE" # Options STOP or PAUSE 
     restart: unless-stopped
 ```
