@@ -10,12 +10,12 @@ JELLYFIN_API_TOKEN = os.getenv("JELLYFIN_API_TOKEN")
 EPISODE_START_INTERVAL = float(os.getenv("EPISODE_START_INTERVAL"))
 EPISODE_COUNT = float(os.getenv("EPISODE_COUNT"))
 JELLYFIN_MESSAGE = os.getenv("JELLYFIN_MESSAGE")
-JELLYFIN_STOPPLAYBACK = os.getenv("JELLYFIN_STOPPLAYBACK")
+JELLYFIN_STOP_ACTION = os.getenv("JELLYFIN_STOPPLAYBACK")
 
 if JELLYFIN_MESSAGE is None:
         JELLYFIN_MESSAGE = "Are you still watching?"
 if JELLYFIN_STOPPLAYBACK is None:
-       JELLYFIN_STOPPLAYBACK = "STOP"
+       JELLYFIN_STOP_ACTION = "STOP"
         
 app = Flask(__name__)
 
@@ -115,8 +115,12 @@ def stop_playback(session):
         pause_url = f"{JELLYFIN_API_URL}/Sessions/{session_id}/Playing/Pause/?ApiKey={JELLYFIN_API_TOKEN}"
         
         # Send the request to stop playback
-        req = urllib.request.urlopen(urllib.request.Request(stop_url, method="POST"))
-        print(f"👤 {session.get('NotificationUsername', 'Unknown')} has played {int(EPISODE_COUNT)} episodes in a row.\n❗️ ⏹️ {JELLYFIN_STOPPLAYBACK} Playback ❗️\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
+        if JELLYFIN_STOP_ACTION == "STOP":
+            req = urllib.request.urlopen(urllib.request.Request(stop_url, method="POST"))
+        else:
+            req = urllib.request.urlopen(urllib.request.Request(pause_url, method="POST"))
+
+        print(f"👤 {session.get('NotificationUsername', 'Unknown')} has played {int(EPISODE_COUNT)} episodes in a row.\n❗ ⏹️ {JELLYFIN_STOP_ACTION} Playback ❗\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
         print()
 
         # Wait for 2 seconds before sending the next command
@@ -126,7 +130,7 @@ def stop_playback(session):
         go_home_url = f"{JELLYFIN_API_URL}/Sessions/{session_id}/Command/GoHome?ApiKey={JELLYFIN_API_TOKEN}"
         
         # Send the request to navigate back to the home screen
-        if JELLYFIN_STOPPLAYBACK == "STOP":
+        if JELLYFIN_STOP_ACTION == "STOP":
             req = urllib.request.urlopen(urllib.request.Request(go_home_url, method="POST"))
 
         return True
