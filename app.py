@@ -10,10 +10,13 @@ JELLYFIN_API_TOKEN = os.getenv("JELLYFIN_API_TOKEN")
 EPISODE_START_INTERVAL = float(os.getenv("EPISODE_START_INTERVAL"))
 EPISODE_COUNT = float(os.getenv("EPISODE_COUNT"))
 JELLYFIN_MESSAGE = os.getenv("JELLYFIN_MESSAGE")
+JELLYFIN_STOP_ACTION = os.getenv("JELLYFIN_STOPPLAYBACK")
 
 if JELLYFIN_MESSAGE is None:
-        JELLYFIN_MESSAGE = "Stopping Playback"
-
+        JELLYFIN_MESSAGE = "Are you still watching?"
+if JELLYFIN_STOPPLAYBACK is None:
+       JELLYFIN_STOP_ACTION = "STOP"
+        
 app = Flask(__name__)
 
 # In-memory tracking
@@ -50,7 +53,7 @@ def webhook():
         }
 
         # Check if this is a "PlaybackStart" event for an episode
-        if notification_type == "PlaybackStart" and item_type == "Episode":
+        if notification_type == "PlaybackStart": # and item_type == "Episode":
             key = f"{user_id}-{device_id}"
 
             print(f"ℹ️ PlaybackStart event received from user: {session.get('NotificationUsername', 'Unknown')}\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
@@ -64,12 +67,18 @@ def webhook():
             tracker = playback_tracker[key]
             time_since_last_play = time.time() - tracker["last_play_time"]
 
+            # Reset playback counter if Movie starts
+            if item_type == "Movie":
+                tracker["count"] = 0
+                print(f"Movie started reset count for user: {session.get('NotificationUsername', 'Unknown')}")
+                    
             # Reset the count if playback events are far apart (e.g., > 1 hour)
             if time_since_last_play > (60 * EPISODE_START_INTERVAL):
                 tracker["count"] = 0
 
             # Increment the playback count
-            tracker["count"] += 1
+            if item_type == "Episode":
+                tracker["count"] += 1
             tracker["last_play_time"] = time.time()
 
             print(f"ℹ️ {session.get('NotificationUsername', 'Unknown')} has played {tracker['count']} episodes in a row.")
@@ -102,10 +111,16 @@ def stop_playback(session):
     try:
         # Construct the URL to stop playback
         stop_url = f"{JELLYFIN_API_URL}/Sessions/{session_id}/Playing/Stop?ApiKey={JELLYFIN_API_TOKEN}"
+        # Construct the URL to pause playback
+        pause_url = f"{JELLYFIN_API_URL}/Sessions/{session_id}/Playing/Pause/?ApiKey={JELLYFIN_API_TOKEN}"
         
         # Send the request to stop playback
-        req = urllib.request.urlopen(urllib.request.Request(stop_url, method="POST"))
-        print(f"👤 {session.get('NotificationUsername', 'Unknown')} has played {int(EPISODE_COUNT)} episodes in a row.\n❗️ ⏹️ Stopping Playback ❗️\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
+        if JELLYFIN_STOP_ACTION == "STOP":
+            req = urllib.request.urlopen(urllib.request.Request(stop_url, method="POST"))
+        else:
+            req = urllib.request.urlopen(urllib.request.Request(pause_url, method="POST"))
+
+        print(f"👤 {session.get('NotificationUsername', 'Unknown')} has played {int(EPISODE_COUNT)} episodes in a row.\n❗ ⏹️ {JELLYFIN_STOP_ACTION} Playback ❗\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
         print()
 
         # Wait for 2 seconds before sending the next command
@@ -115,7 +130,8 @@ def stop_playback(session):
         go_home_url = f"{JELLYFIN_API_URL}/Sessions/{session_id}/Command/GoHome?ApiKey={JELLYFIN_API_TOKEN}"
         
         # Send the request to navigate back to the home screen
-        req = urllib.request.urlopen(urllib.request.Request(go_home_url, method="POST"))
+        if JELLYFIN_STOP_ACTION == "STOP":
+            req = urllib.request.urlopen(urllib.request.Request(go_home_url, method="POST"))
 
         return True
     except Exception as e:
