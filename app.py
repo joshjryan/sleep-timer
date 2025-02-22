@@ -14,7 +14,7 @@ JELLYFIN_STOP_ACTION = os.getenv("JELLYFIN_STOPPLAYBACK")
 
 if JELLYFIN_MESSAGE is None:
         JELLYFIN_MESSAGE = "Are you still watching?"
-if JELLYFIN_STOP_ACTION is None:
+if JELLYFIN_STOPPLAYBACK is None:
        JELLYFIN_STOP_ACTION = "STOP"
         
 app = Flask(__name__)
