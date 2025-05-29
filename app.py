@@ -11,6 +11,7 @@ EPISODE_START_INTERVAL = float(os.getenv("EPISODE_START_INTERVAL"))
 EPISODE_COUNT = float(os.getenv("EPISODE_COUNT"))
 JELLYFIN_MESSAGE = os.getenv("JELLYFIN_MESSAGE")
 JELLYFIN_STOP_ACTION = os.getenv("JELLYFIN_STOP_ACTION")
+SKIMMING_DETECTION = float(os.getenv("SKIMMING_DETECTION", 1))  # default 1 min
 
 if JELLYFIN_MESSAGE is None:
         JELLYFIN_MESSAGE = "Are you still watching?"
@@ -43,6 +44,7 @@ def webhook():
         user_id = event.get("UserId")
         device_id = event.get("DeviceId")
         item_type = event.get("ItemType")
+        item_id = event.get("ItemId")  # Current item ID
         
         # Store session object with nullable fields
         session = {
@@ -55,22 +57,33 @@ def webhook():
         # Check if this is a "PlaybackStart" event for an episode
         if notification_type == "PlaybackStart": # and item_type == "Episode":
             key = f"{user_id}-{device_id}"
-
-            print(f"ℹ️ PlaybackStart event received from user: {session.get('NotificationUsername', 'Unknown')}\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
+            now = time.time()
 
             if key not in playback_tracker:
                 playback_tracker[key] = {
                     "count": 0,
-                    "last_play_time": time.time()
+                    "last_play_time": 0,
+                    "last_item_id": None
                 }
 
             tracker = playback_tracker[key]
-            time_since_last_play = time.time() - tracker["last_play_time"]
+            time_since_last_play = now - tracker["last_play_time"]
+
+            # Ignore if episode changed too quickly
+            if (item_type == "Episode" and
+                tracker["last_item_id"] != item_id and
+                time_since_last_play < (SKIMMING_DETECTION * 60)):
+                print(f"⏩ Skimming detected. Skipping count, episode switched in less than {SKIMMING_DETECTION} mins by {session.get('NotificationUsername', 'Unknown')}")
+                tracker["last_play_time"] = now
+                tracker["last_item_id"] = item_id
+                return jsonify({"message": "Episode switch too fast, not counted"}), 200
+
+            print(f"ℹ️ PlaybackStart from user: {session.get('NotificationUsername', 'Unknown')} | 🌐 Device: {session.get('RemoteEndPoint', 'Unknown')}")
 
             # Reset playback counter if Movie starts
             if item_type == "Movie":
                 tracker["count"] = 0
-                print(f"Movie started reset count for user: {session.get('NotificationUsername', 'Unknown')}")
+                print(f"Movie started, reset count for user: {session.get('NotificationUsername', 'Unknown')}")
                     
             # Reset the count if playback events are far apart (e.g., > 1 hour)
             if time_since_last_play > (60 * EPISODE_START_INTERVAL):
@@ -79,7 +92,8 @@ def webhook():
             # Increment the playback count
             if item_type == "Episode":
                 tracker["count"] += 1
-            tracker["last_play_time"] = time.time()
+            tracker["last_play_time"] = now
+            tracker["last_item_id"] = item_id
 
             print(f"ℹ️ {session.get('NotificationUsername', 'Unknown')} has played {tracker['count']} episodes in a row.")
 
@@ -121,7 +135,7 @@ def stop_playback(session):
             req = urllib.request.urlopen(urllib.request.Request(pause_url, method="POST"))
 
         print(f"👤 {session.get('NotificationUsername', 'Unknown')} has played {int(EPISODE_COUNT)} episodes in a row.\n❗ ⏹️ {JELLYFIN_STOP_ACTION} Playback ❗\n🌐 Device Address: {session.get('RemoteEndPoint', 'Unknown')}")
-        print()
+
 
         # Wait for 2 seconds before sending the next command
         time.sleep(2)
