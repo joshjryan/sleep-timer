@@ -73,7 +73,9 @@ def webhook():
             if (item_type == "Episode" and
                 tracker["last_item_id"] != item_id and
                 time_since_last_play < (SKIMMING_DETECTION * 60)):
-                print(f"⏩ Skimming detected. Skipping count, episode switched in less than {SKIMMING_DETECTION} mins by {session.get('NotificationUsername', 'Unknown')}")
+                print(f"⏩ Skimming detected!")
+                time.sleep(1)
+                print(f"⏩ Count skipped, {session.get('NotificationUsername', 'Unknown')} still has played only {tracker['count']} episodes in a row.")
                 tracker["last_play_time"] = now
                 tracker["last_item_id"] = item_id
                 return jsonify({"message": "Episode switch too fast, not counted"}), 200
