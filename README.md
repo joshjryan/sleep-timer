@@ -4,7 +4,7 @@ A poor man's sleep timer for Jellyfin
 This is just a small side-project, with a lot of room for improvement.  Feel free to submit Pull Requests.
 
 ## Summary
-Becasue most Jellyfin clients do not have a "Still Watching?" feature, I created a work-around.  This app leverages events from the official Jellyfin Webhook Plugin to count the number of minutes after media started to play.  If content still playing after 120 minutes, this will ask user if still watching, if no interecation is commenced by the user, media will automatically stop playback at the end of it.
+Becasue most Jellyfin clients do not have a "Still Watching?" feature, I created a work-around.  This app leverages events from the official Jellyfin Webhook Plugin to count the number of episodes that any user has played on a specific device.  If more than 3 episodes have been played with less than one hour between start times, this will automatically stop playback of the fourth one.
 
 ## Requirements
 1. Start the docker container
