@@ -11,7 +11,7 @@ EPISODE_START_INTERVAL = float(os.getenv("EPISODE_START_INTERVAL"))
 EPISODE_COUNT = float(os.getenv("EPISODE_COUNT"))
 JELLYFIN_MESSAGE = os.getenv("JELLYFIN_MESSAGE")
 JELLYFIN_STOP_ACTION = os.getenv("JELLYFIN_STOP_ACTION")
-SKIMMING_DETECTION = float(os.getenv("SKIMMING_DETECTION", 1))  # default 1 min
+EPISODE_SKIMMING_DURATION = float(os.getenv("EPISODE_SKIMMING_DURATION", 1))  # default 1 min
 
 if JELLYFIN_MESSAGE is None:
         JELLYFIN_MESSAGE = "Are you still watching?"
@@ -72,7 +72,7 @@ def webhook():
             # Ignore if episode changed too quickly
             if (item_type == "Episode" and
                 tracker["last_item_id"] != item_id and
-                time_since_last_play < (SKIMMING_DETECTION * 60)):
+                time_since_last_play < (EPISODE_SKIMMING_DURATION * 60)):
                 print(f"⏩ Skimming detected!")
                 time.sleep(1)
                 print(f"⏩ Count skipped, {session.get('NotificationUsername', 'Unknown')} still has played only {tracker['count']} episodes in a row.")
