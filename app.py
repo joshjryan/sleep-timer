@@ -78,7 +78,7 @@ def webhook():
                 print(f"⏩ Count skipped, {session.get('NotificationUsername', 'Unknown')} still has played only {tracker['count']} episodes in a row.")
                 tracker["last_play_time"] = now
                 tracker["last_item_id"] = item_id
-                return jsonify({"message": "Episode switch too fast, not counted"}), 200
+                return jsonify({"message": "Episode skipped quickly; sleep-timer skipped."}), 200
 
             print(f"ℹ️ PlaybackStart from user: {session.get('NotificationUsername', 'Unknown')} | 🌐 Device: {session.get('RemoteEndPoint', 'Unknown')}")
 
