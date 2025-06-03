@@ -33,6 +33,8 @@ services:
       JELLYFIN_API_TOKEN: "value2"
       # Optional. Number of minutes after an episode starts that a subsequent play will be consideder in-a-row.
       EPISODE_START_INTERVAL: 60
+      # Optional. Number of minutes after an episode won't count as skimmed (will count the episode as viewed). Default value is 1 min.
+      EPISODE_SKIMMING_DURATION: 1
       # Optional. Stop playback when this episode starts.
       EPISODE_COUNT: 4
       # Optional. Message to be displayed before playback stop.
